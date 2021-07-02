@@ -1,0 +1,4 @@
+Red Color : #e91b24
+Green Color Active Time : #18D10B
+Background Grey Color : #f1f1f1
+Grey Hover Color : #DADADA
