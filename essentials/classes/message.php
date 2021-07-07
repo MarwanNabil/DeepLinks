@@ -1,10 +1,10 @@
 <?php
 
-//we include person class to identify the current person identity.
-include_once $_SERVER['DOCUMENT_ROOT'] . '\PhpProjects\Training\DeepLinks\essentials\classes\person.php';
-
 //databaseConnect Directory.
 include_once $_SERVER['DOCUMENT_ROOT'] . '\PhpProjects\Training\DeepLinks\essentials\databaseConnect.php';
+
+//we include person class to identify the current person identity.
+include_once $_SERVER['DOCUMENT_ROOT'] . '\PhpProjects\Training\DeepLinks\essentials\classes\person.php';
 
 
 /*
@@ -107,11 +107,7 @@ function sendMessage($yourMessage){
 	global $db;
 	global $loggedInPerson;
 	global $targetPerson;
-
-	//echo $targetPerson->getID();
-
 	$q = $db->prepare("INSERT INTO message (senderID , receiverID , sentTime , msgText) VALUES (? , ? , ? , ?)");
-	echo $targetPerson->getID();
 	$q->execute(array($loggedInPerson->getID() , $targetPerson->getID() , date("Y-m-d H:i:s") , $yourMessage));
 }
 
@@ -119,28 +115,31 @@ function sendMessage($yourMessage){
 
 //this class only for messages' head.
 class easyMsg{
-	private $friendID;
-	private $receivedMessage;
+	private $friend;
+	private $receivedMessageBool; //true when friend sent it.
 	private $textMessage;
 	private $dateTime;
-	public function __construct($textMessage , $dateTime , $receivedMessage , $friendID){
+	public function __construct($friend , $receivedMessageBool , $textMessage , $dateTime){
 		$this->textMessage = $textMessage;
 		if(is_null($dateTime)){
 			$this->dateTime = date("Y-m-d H:i:s"); //Year - Month - Day - Hour - Min - Sec
 		} else {
 			$this->dateTime = $dateTime;
 		}
-		$this->friendID = $friendID;
-		$this->receivedMessage = $receivedMessage;
+		$this->friend = $friend;
+		$this->receivedMessageBool = $receivedMessageBool;
+	}
+	public function getFriend(){
+		return $this->friend;
 	}
 	public function getFriendID(){
-		return $this->friendID;
+		return $this->friend->getID();
 	}
 	public function getDateTime(){
 		return $this->dateTime;
 	}
-	public function getReceivedMessage(){
-		return $this->receivedMessage;
+	public function getReceivedMessageBool(){
+		return $this->receivedMessageBool;
 	}
 	public function getTextMessage(){
 		return $this->textMessage;
@@ -159,7 +158,7 @@ function getLastMessageFromDatabase($loggedInPerson , $targetPerson){
 	$msg;
 
 	if($q->rowCount() == 0){
-		$msg = new easyMsg("you're new friends." , null , 0 , $friendID);
+		$msg = new easyMsg($targetPerson , 0 , "you're new friends." , null);
 	} else {
 
 		$isReceived = 1;
@@ -167,9 +166,34 @@ function getLastMessageFromDatabase($loggedInPerson , $targetPerson){
 			$isReceived = 0;
 		}
 		
-		$msg = new easyMsg($row['msgText'] , $row['sentTime'] , $isReceived , $friendID);
+		$msg = new easyMsg($targetPerson , $isReceived , $row['msgText'] , $row['sentTime']);
 	}
 	return $msg;
+}
+
+
+/*
+this is so important to loads the chats where the one who made the newest action is at
+the top of the message heads , the oldest is the bottm one.
+*/
+
+$chatHeads = new \ds\Vector();
+
+function chatHeadsIntializer(){
+	global $numberOfPeople; //number of active people
+	global $allPeople; //actual people as objects
+	global $loggedInPerson;
+	global $chatHeads;
+
+	for($i = 0; $i < $numberOfPeople; $i++){
+		 $chatHeads->push(getLastMessageFromDatabase($loggedInPerson , $allPeople->get($i)));
+	}
+
+	//sort the message heads from the newest action to the oldest action.
+
+	$chatHeads->sort(function($a , $b){
+			return strtotime($a->getDateTime()) < strtotime($b->getDateTime());
+	});
 }
 
 ?>

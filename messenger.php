@@ -14,6 +14,10 @@
 	$loggedInPerson = unserialize($_SESSION['loggedInPerson']);
 
 
+	/*$a = date("Y-m-d H:i:s");
+	$b = date("20-1-1 1:1:1");
+	echo strtotime($b) + 2;*/
+	
 	$targetPerson;
 	$targetChat = '';
 
@@ -72,19 +76,21 @@
 	}
 
 	//for messages heads.
+	chatHeadsIntializer();
+
 	$headMessages = '';
 	for($i = 0; $i < $numberOfPeople; $i++){
-		$headMessages .= '<div class="container" onclick="' . clickedMessengerHeadCookie($allPeople->get($i)->getID()) . '">
-	  		  			  <img src="data:image/jpeg;base64,'.base64_encode($allPeople->get($i)->getProfilePicture()) . '"' .' alt="Avatar">
-	 		  			  <h3>'. $allPeople->get($i)->getName() .'</h3>';
+		$headMessages .= '<div class="container" onclick="' . clickedMessengerHeadCookie($chatHeads->get($i)->getFriend()->getID()) . '">
+	  		  			  <img src="data:image/jpeg;base64,'.base64_encode($chatHeads->get($i)->getFriend()->getProfilePicture()) . '"' .' alt="Avatar">
+	 		  			  <h3>'. $chatHeads->get($i)->getFriend()->getName() .'</h3>';
 	 	//currently you want the last message received
 	 	$msg = getLastMessageFromDatabase($loggedInPerson, $allPeople->get($i));
 
 	 	$sender;
-	 	if($msg->getReceivedMessage() == 0){
+	 	if($msg->getReceivedMessageBool() == 0){
 	 		$sender = "You: ";
 	 	} else {
-	 		$sender = $allPeople->get($i)->getFirstName() . ': ';
+	 		$sender = $chatHeads->get($i)->getFriend()->getFirstName() . ': ';
 	 	}
 
 	  	$headMessages .= '<p>'. $sender . $msg->getTextMessage() .'</p>
