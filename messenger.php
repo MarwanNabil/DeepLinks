@@ -13,11 +13,6 @@
 	
 	$loggedInPerson = unserialize($_SESSION['loggedInPerson']);
 
-
-	/*$a = date("Y-m-d H:i:s");
-	$b = date("20-1-1 1:1:1");
-	echo strtotime($b) + 2;*/
-	
 	$targetPerson;
 	$targetChat = '';
 
@@ -46,8 +41,6 @@
 
 		uploadMessagesTargetPersonAndLoggedInPerson($targetPerson , $loggedInPerson);
 
-		//echo $sizeOfActiveConverstation;
-
 		//prin them on the page.
 		for($i = 0; $i < $sizeOfActiveConverstation; $i++){
 			if($activeConversation->get($i)->getMessageSenderID() == $loggedInPerson->getID()){
@@ -75,27 +68,30 @@
 		return $ret;
 	}
 
-	//for messages heads.
+	/*
+		for messages head
+		you must do it to intialize the sorting crieteria based on the newest action to the top
+		the oldest action is at the bottom.
+	*/
 	chatHeadsIntializer();
 
-	$headMessages = '';
+	$headMessages = "";
 	for($i = 0; $i < $numberOfPeople; $i++){
-		$headMessages .= '<div class="container" onclick="' . clickedMessengerHeadCookie($chatHeads->get($i)->getFriend()->getID()) . '">
-	  		  			  <img src="data:image/jpeg;base64,'.base64_encode($chatHeads->get($i)->getFriend()->getProfilePicture()) . '"' .' alt="Avatar">
-	 		  			  <h3>'. $chatHeads->get($i)->getFriend()->getName() .'</h3>';
-	 	//currently you want the last message received
-	 	$msg = getLastMessageFromDatabase($loggedInPerson, $allPeople->get($i));
+		$msg = $chatHeads->get($i);
 
-	 	$sender;
+		$headMessages .= '<div class="container" onclick="' . clickedMessengerHeadCookie($msg->getFriend()->getID()) . '">
+	  		  			  <img src="data:image/jpeg;base64,'.base64_encode($msg->getFriend()->getProfilePicture()) . '"' .' alt="Avatar">
+	 		  			  <h3>'. $msg->getFriend()->getName() .'</h3>';
+	 	
+
+	 	$sender = "";
 	 	if($msg->getReceivedMessageBool() == 0){
 	 		$sender = "You: ";
-	 	} else {
-	 		$sender = $chatHeads->get($i)->getFriend()->getFirstName() . ': ';
 	 	}
 
-	  	$headMessages .= '<p>'. $sender . $msg->getTextMessage() .'</p>
-	  		  			  <span class="time-right">'. $msg->getDateTime() . '</span>
-			  			  </div>';
+	  	$headMessages .= '<p>'. $sender . $msg->getTextMessage() .'</p>';
+	  	$headMessages .= '<span class="time-right">'. $msg->getDateTime() . '</span>
+	  					  </div>';
 	}
 
 ?>
@@ -154,8 +150,14 @@
 				</div>
 
 
+				<script>
+					function stickToBottomScroll(){
+						var element = document.getElementById("chatHeadsID");
+						element.scrollTop = element.scrollHeight;
+					}
+				</script>
 				<!-- messages will work with container 2-->
-				<div style="overflow-y: scroll; height: 65vh; background-color: white;">
+				<div id="chatHeadsID"  style="overflow-y: scroll; height: 65vh; background-color: white;" onclick="stickToBottomScroll()">
 						<?php 
 							echo $targetChat;
 						?>

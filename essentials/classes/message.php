@@ -165,9 +165,9 @@ function getLastMessageFromDatabase($loggedInPerson , $targetPerson){
 		if($row['senderID'] == $loggedInPerson->getID()){
 			$isReceived = 0;
 		}
-		
 		$msg = new easyMsg($targetPerson , $isReceived , $row['msgText'] , $row['sentTime']);
 	}
+	//echo $loggedInPerson->getName() . ' ' . $targetPerson->getName() . ' ' . $msg->getTextMessage() . '<br>';
 	return $msg;
 }
 
