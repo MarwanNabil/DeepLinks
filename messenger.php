@@ -18,6 +18,20 @@
 
 	loadPeopleFromDatabase();
 
+	function activeSince($activeDate){
+		$timeDif = strtotime(date("Y-m-d H:i:s")) - strtotime($activeDate);
+		$timeDif = ($timeDif + 59) / 60; //ceiling the minutes
+		if((int)$timeDif < 10){
+			return 'now'; //ten minutes he is online
+		} else if($timeDif < 60){
+			return round($timeDif) . ' min'; //active since some minutes 
+		} else if( ($timeDif+59) / 60 < 12 ) {
+			return round(($timeDif+59)/60) . ' hr'; //active since some hours
+		} else {
+			$thatMoment = strtotime($activeDate);
+			return date('Y/m/d' , $thatMoment);
+		}
+	}
 
 	if($_SERVER['REQUEST_METHOD'] == "POST"){
 		
@@ -145,7 +159,19 @@
 						<div style="  border: 0.5px solid white; padding: 1px;">
 							<img style="float: left; max-width: 60px; border-radius: 50%; margin-top: 15px; margin-left: 10px; margin-right: 10px;" src="data:image/jpeg;base64,<?php echo base64_encode($targetPerson->getProfilePicture()); ?>" alt="Avatar">
 							<h2 style="color: black; margin-top: 20px;"><?php echo $targetPerson->getName(); ?></h2>
-							<h3 style="margin-top: -15px; color: #18D10B;"><?php echo "Active Since : " . $targetPerson->getActiveTime(); ?></h3>
+							<h3 style="margin-top: -15px; color: #18D10B;"><?php 
+
+								$ret = activeSince($targetPerson->getActiveTime());
+
+								if($ret instanceof date){
+									echo "Active now";
+									echo 'Active since : ' . $ret;
+								} else if($ret == "now"){
+									echo "Active now";	
+								} else {
+									echo "Active from " . $ret;
+								}
+							 ?></h3>
 						</div>
 				</div>
 
