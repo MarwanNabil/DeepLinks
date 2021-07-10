@@ -107,8 +107,29 @@ function sendMessage($yourMessage){
 	global $db;
 	global $loggedInPerson;
 	global $targetPerson;
+
+	//set the current logged in person active time to now
+	$loggedInPerson->setActiveTimeToNow();
+
 	$q = $db->prepare("INSERT INTO message (senderID , receiverID , sentTime , msgText) VALUES (? , ? , ? , ?)");
 	$q->execute(array($loggedInPerson->getID() , $targetPerson->getID() , date("Y-m-d H:i:s") , $yourMessage));
+
+	//you should notify the other person using Pusher trigger
+	require $_SERVER['DOCUMENT_ROOT'] . '/PhpProjects/Training/DeepLinks/vendor/autoload.php';
+
+	$options = array(
+		'cluster' => 'eu',
+		'useTLS' => true
+	);
+	$pusher = new Pusher\Pusher(
+		'0c2463f10089b68317d5',
+		'c232127d74feb5b2d657',
+		'1233468',
+		$options
+	);
+
+	$data['message'] = 'refresh';
+	$pusher->trigger('msgsChannel', $targetPerson->getID() , $data);
 }
 
 
@@ -122,7 +143,7 @@ class easyMsg{
 	public function __construct($friend , $receivedMessageBool , $textMessage , $dateTime){
 		$this->textMessage = $textMessage;
 		if(is_null($dateTime)){
-			$this->dateTime = date("Y-m-d H:i:s"); //Year - Month - Day - Hour - Min - Sec
+			$this->dateTime = date("Y-m-d"); //Year - Month - Day - Hour - Min - Sec
 		} else {
 			$this->dateTime = $dateTime;
 		}
@@ -195,5 +216,4 @@ function chatHeadsIntializer(){
 			return strtotime($a->getDateTime()) < strtotime($b->getDateTime());
 	});
 }
-
 ?>

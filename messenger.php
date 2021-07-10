@@ -35,6 +35,9 @@
 
 	if($_SERVER['REQUEST_METHOD'] == "POST"){
 		
+		//you made a request then you should set active time to now
+		$loggedInPerson->setActiveTimeToNow();
+
 		$targetChatPersonID = $_COOKIE['clickedMessengerHead'];
 
 
@@ -120,7 +123,10 @@
 	<link rel="stylesheet" type="text/css" href="styles/requestedMessages.css"/>
 	<link rel="stylesheet" type="text/css" href="styles/messages.css"/>
 	<link rel="stylesheet" type="text/css" href="styles/scrollBar.css"/>
+
+	<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 	<script>
+
 		function setCookie(cname, exHours, cvalue) {
 		  const d = new Date();
 		  d.setTime(d.getTime() + (exHours*60*60*1000));
@@ -128,15 +134,33 @@
 		  document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
 		  document.getElementById('messagesHeads').submit();
 		}
+
+		Pusher.logToConsole = true;
+
+		var pusher = new Pusher('0c2463f10089b68317d5', {
+		cluster: 'eu'
+		});
+
+		var channel = pusher.subscribe('msgsChannel');
+		channel.bind(<?php echo $loggedInPerson->getID(); ?>, function(data) {
+		location.reload();
+		});
+
 	</script>
 </head>
 <body style="overflow: hidden; background-color: #f1f1f1;">
 		<div style="width: 100%; height: 8vh; border-radius: 5px;">
 			<ul>
 	 	 	  <img style="float: left; margin-left: 18px; margin-top: 5px; width: 350px;" src="images/logos/DeepLinksLogo2.png">
-			  <li style="float:right">
+			 <li style="float:right">
 			  	<a href="actions/logout.php">Logout</a>
 			  </li>
+			  <li style="width:auto;">
+			  	<a><?php 
+				 	 echo '<img style="height:55px; float:left; margin-top:-15px; margin-right:30px; border-radius: 50%;" src="data:image/jpeg;base64,'.base64_encode($loggedInPerson->getProfilePicture()) . '"' .' alt="Avatar">';
+				 	 echo $loggedInPerson->getName();  
+				  ?></a>
+			  </li> 
 			</ul>
 		</div>
 		<div>
@@ -164,7 +188,6 @@
 								$ret = activeSince($targetPerson->getActiveTime());
 
 								if($ret instanceof date){
-									echo "Active now";
 									echo 'Active since : ' . $ret;
 								} else if($ret == "now"){
 									echo "Active now";	
